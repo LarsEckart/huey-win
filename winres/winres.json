@@ -3,6 +3,7 @@
     "APP": {
       "0000": [
         "icon256.png",
+        "icon128.png",
         "icon96.png",
         "icon80.png",
         "icon72.png",
