@@ -2,9 +2,19 @@
   "RT_GROUP_ICON": {
     "APP": {
       "0000": [
-        "icon.png",
+        "icon256.png",
+        "icon96.png",
+        "icon80.png",
+        "icon72.png",
+        "icon64.png",
+        "icon60.png",
         "icon48.png",
+        "icon40.png",
+        "icon36.png",
         "icon32.png",
+        "icon30.png",
+        "icon24.png",
+        "icon20.png",
         "icon16.png"
       ]
     }
@@ -21,7 +31,7 @@
         "execution-level": "as invoker",
         "ui-access": false,
         "auto-elevate": false,
-        "dpi-awareness": "system",
+        "dpi-awareness": "per monitor v2",
         "disable-theming": false,
         "disable-window-filtering": false,
         "high-resolution-scrolling-aware": false,
