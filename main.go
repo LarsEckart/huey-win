@@ -41,34 +41,44 @@ func showSetup(w fyne.Window, a fyne.App) {
 	bridgeEntry := widget.NewEntry()
 	bridgeEntry.SetPlaceHolder("192.168.1.x")
 
-	usernameEntry := widget.NewEntry()
-	usernameEntry.SetPlaceHolder("bridge username / API key")
-
 	status := widget.NewLabel("")
 
-	saveBtn := widget.NewButton("Connect", func() {
+	var pairBtn *widget.Button
+	pairBtn = widget.NewButton("Pair", func() {
 		ip := bridgeEntry.Text
-		user := usernameEntry.Text
-		if ip == "" || user == "" {
-			status.SetText("Both fields are required.")
+		if ip == "" {
+			status.SetText("Enter the bridge IP address.")
 			return
 		}
-		cfg := &config.Config{BridgeIP: ip, Username: user}
-		if err := cfg.Save(); err != nil {
-			status.SetText(fmt.Sprintf("Failed to save: %v", err))
-			return
-		}
-		client := hue.NewClient(ip, user)
-		showGroups(w, client)
+		pairBtn.Disable()
+		status.SetText("Press the button on your Hue bridge, then wait...")
+
+		go func() {
+			client := hue.NewClient(ip, "")
+			username, err := client.Register("huey-win#pc")
+			if err != nil {
+				status.SetText(fmt.Sprintf("Error: %v", err))
+				pairBtn.Enable()
+				return
+			}
+			cfg := &config.Config{BridgeIP: ip, Username: username}
+			if err := cfg.Save(); err != nil {
+				status.SetText(fmt.Sprintf("Failed to save config: %v", err))
+				pairBtn.Enable()
+				return
+			}
+			authedClient := hue.NewClient(ip, username)
+			showGroups(w, authedClient)
+		}()
 	})
 
 	w.SetContent(container.NewVBox(
 		widget.NewLabel("Hue Bridge Setup"),
 		widget.NewLabel("Bridge IP:"),
 		bridgeEntry,
-		widget.NewLabel("Username / API Key:"),
-		usernameEntry,
-		saveBtn,
+		widget.NewLabel(""),
+		widget.NewLabel("Press the button on your bridge, then click Pair."),
+		pairBtn,
 		status,
 	))
 	w.ShowAndRun()
