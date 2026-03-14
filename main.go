@@ -129,8 +129,11 @@ func loadGroups(w fyne.Window, client *hue.Client, content *fyne.Container, stat
 		})
 		toggle.Checked = g.AnyOn
 
-		row := container.NewHBox(toggle, label, layout.NewSpacer())
-		content.Add(row)
+		rowContent := container.NewHBox(toggle, label, layout.NewSpacer())
+		tappableRow := newTappableRow(rowContent, func() {
+			toggle.SetChecked(!toggle.Checked)
+		})
+		content.Add(tappableRow)
 	}
 
 	refreshBtn := widget.NewButton("Refresh", func() {
@@ -141,4 +144,27 @@ func loadGroups(w fyne.Window, client *hue.Client, content *fyne.Container, stat
 	})
 	content.Add(layout.NewSpacer())
 	content.Add(refreshBtn)
+}
+
+// tappableRow wraps any content and makes the entire area tappable.
+type tappableRow struct {
+	widget.BaseWidget
+	content fyne.CanvasObject
+	onTap   func()
+}
+
+func newTappableRow(content fyne.CanvasObject, onTap func()) *tappableRow {
+	t := &tappableRow{content: content, onTap: onTap}
+	t.ExtendBaseWidget(t)
+	return t
+}
+
+func (t *tappableRow) CreateRenderer() fyne.WidgetRenderer {
+	return widget.NewSimpleRenderer(t.content)
+}
+
+func (t *tappableRow) Tapped(_ *fyne.PointEvent) {
+	if t.onTap != nil {
+		t.onTap()
+	}
 }
