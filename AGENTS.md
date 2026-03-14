@@ -13,6 +13,10 @@ A minimal Fyne GUI for controlling Philips Hue rooms/zones on Windows. Single-fi
 
 All code lives in `main.go`. Bridge communication and config use packages from the `github.com/LarsEckart/huey` module (`hue/client.go` for HTTP calls, `config/config.go` for `~/.config/huey/config.json`). UI is built with **Fyne v2**. No console output — all errors must be shown via Fyne widgets/dialogs (no `log.Fatal` or `fmt.Print`).
 
+## Releasing
+
+Push a version tag to trigger a release: `git tag v0.1.0 && git push origin v0.1.0`. The GitHub Actions workflow will build → sign (via SignPath) → create a GitHub Release with the signed `huey-win.exe` attached.
+
 ## Code Style
 
 - Go standard formatting (`gofmt`). Imports: stdlib, blank line, external, blank line, internal.
