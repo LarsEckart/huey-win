@@ -17,6 +17,7 @@ import (
 
 func main() {
 	a := app.New()
+	a.SetIcon(appIcon)
 	w := a.NewWindow("Huey")
 	w.Resize(fyne.NewSize(300, 400))
 
