@@ -34,7 +34,7 @@ func main() {
 	}
 
 	client := hue.NewClient(cfg.BridgeIP, cfg.Username)
-	showGroups(w, client)
+	showTabs(w, client)
 	w.ShowAndRun()
 }
 
@@ -69,7 +69,7 @@ func showSetup(w fyne.Window, a fyne.App) {
 				return
 			}
 			authedClient := hue.NewClient(ip, username)
-			showGroups(w, authedClient)
+			showTabs(w, authedClient)
 		}()
 	})
 
@@ -83,6 +83,26 @@ func showSetup(w fyne.Window, a fyne.App) {
 		status,
 	))
 	w.ShowAndRun()
+}
+
+func showTabs(w fyne.Window, client *hue.Client) {
+	groupsContent := container.NewVBox()
+	groupsStatus := widget.NewLabel("Loading...")
+	groupsContent.Add(groupsStatus)
+
+	lightsContent := container.NewVBox()
+	lightsStatus := widget.NewLabel("Loading...")
+	lightsContent.Add(lightsStatus)
+
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Rooms", container.NewVScroll(groupsContent)),
+		container.NewTabItem("Lights", container.NewVScroll(lightsContent)),
+	)
+
+	w.SetContent(tabs)
+
+	go loadGroups(w, client, groupsContent, groupsStatus)
+	go loadLights(w, client, lightsContent, lightsStatus)
 }
 
 func showGroups(w fyne.Window, client *hue.Client) {
@@ -142,6 +162,65 @@ func loadGroups(w fyne.Window, client *hue.Client, content *fyne.Container, stat
 		content.RemoveAll()
 		content.Add(statusLabel)
 		go loadGroups(w, client, content, statusLabel)
+	})
+	content.Add(layout.NewSpacer())
+	content.Add(refreshBtn)
+}
+
+func loadLights(w fyne.Window, client *hue.Client, content *fyne.Container, statusLabel *widget.Label) {
+	lights, err := client.GetLights()
+	if err != nil {
+		statusLabel.SetText(fmt.Sprintf("Error: %v", err))
+		return
+	}
+
+	content.RemoveAll()
+
+	if len(lights) == 0 {
+		content.Add(widget.NewLabel("No lights found."))
+		return
+	}
+
+	var mu sync.Mutex
+
+	for _, l := range lights {
+		l := l
+		label := widget.NewLabel(fmt.Sprintf("%s  (%s)", l.Name, l.Type))
+
+		toggle := widget.NewCheck("", func(on bool) {
+			mu.Lock()
+			defer mu.Unlock()
+			if err := client.SetLightState(l.ID, hue.LightState{On: &on}); err != nil {
+				dialog.ShowError(fmt.Errorf("failed to set %s: %w", l.Name, err), w)
+			}
+		})
+		toggle.Checked = l.On
+
+		bri := l.Brightness
+		slider := widget.NewSlider(0, 254)
+		slider.Value = float64(bri)
+		slider.OnChanged = func(val float64) {
+			mu.Lock()
+			defer mu.Unlock()
+			b := int(val)
+			go func() {
+				if err := client.SetLightState(l.ID, hue.LightState{Brightness: &b}); err != nil {
+					dialog.ShowError(fmt.Errorf("failed to set brightness for %s: %w", l.Name, err), w)
+				}
+			}()
+		}
+
+		tappableRow := newTappableRow(container.NewHBox(toggle, label, layout.NewSpacer()), func() {
+			toggle.SetChecked(!toggle.Checked)
+		})
+		content.Add(container.NewVBox(tappableRow, slider))
+	}
+
+	refreshBtn := widget.NewButton("Refresh", func() {
+		statusLabel := widget.NewLabel("Refreshing...")
+		content.RemoveAll()
+		content.Add(statusLabel)
+		go loadLights(w, client, content, statusLabel)
 	})
 	content.Add(layout.NewSpacer())
 	content.Add(refreshBtn)
