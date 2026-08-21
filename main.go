@@ -294,7 +294,6 @@ func loadGroups(w fyne.Window, client *hue.Client, content *fyne.Container, stat
 	var mu sync.Mutex
 
 	for _, g := range filtered {
-		g := g
 		label := widget.NewLabel(fmt.Sprintf("%s  (%s)", g.Name, g.Type))
 
 		toggle := widget.NewCheck("", func(on bool) {
@@ -340,7 +339,6 @@ func loadLights(w fyne.Window, client *hue.Client, content *fyne.Container, stat
 	var mu sync.Mutex
 
 	for _, l := range lights {
-		l := l
 		label := widget.NewLabel(fmt.Sprintf("%s  (%s)", l.Name, l.Type))
 
 		toggle := widget.NewCheck("", func(on bool) {

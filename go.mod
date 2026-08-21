@@ -1,6 +1,6 @@
 module github.com/LarsEckart/huey-win
 
-go 1.25.5
+go 1.27.0
 
 require (
 	fyne.io/fyne/v2 v2.7.3

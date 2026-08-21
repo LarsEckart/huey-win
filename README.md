@@ -30,7 +30,7 @@ Configuration is stored in `~/.config/huey/config.json`.
 go build -ldflags="-H windowsgui" -o huey-win.exe .
 ```
 
-Requires Go 1.25+ and a C compiler (CGO is needed for Fyne).
+Requires Go 1.27+ and a C compiler (CGO is needed for Fyne).
 
 ## Privacy policy
 
